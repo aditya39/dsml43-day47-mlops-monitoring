@@ -2,7 +2,7 @@
 
 **Individu · dikumpulkan di LMS · maksimal H+12 setelah kelas**
 Kelas: Sabtu, 5 Desember 2026 → **batas: Kamis, 17 Desember 2026** (jam mengikuti yang tertera di LMS; kalau LMS berbeda,
-ikuti LMS). Panduan tambahan: `[LINK ASSIGNMENT GUIDANCE]`
+ikuti LMS). Panduan langkah demi langkah: `lab/README.md` dan Buku Panduan Peserta (`docs/`)
 
 ---
 
