@@ -80,7 +80,7 @@ MLflow sengaja di 5001, bukan 5000 (di macOS port 5000 dipakai AirPlay). Semua p
 
 ## Bagian 0 — Nyalakan stack (9 menit)
 
-1. **Matikan container Day 46** kalau masih jalan (dia memakai port 8000). Di folder lab Day 46: `docker compose down`.
+1. **Matikan container Day 46** kalau masih jalan (dia memakai port 8000). Di folder repo Day 46 (`dsml43-day46-docker-ml-app`): `docker compose down`, lalu `docker rm -f harga-api` kalau container dari Bagian B masih ada.
 2. Di folder `lab/starter`, venv aktif, buat tiga dataset (sintetis, deterministik):
    ```
    python make_dataset.py
