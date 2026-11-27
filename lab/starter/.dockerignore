@@ -1,0 +1,12 @@
+# Jangan ikut masuk image: environment lokal, data, log, rahasia
+.venv/
+venv/
+__pycache__/
+*.pyc
+data/
+logs/
+mlruns/
+mlartifacts/
+.env
+.git/
+.ipynb_checkpoints/

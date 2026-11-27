@@ -1,0 +1,10 @@
+# Dashboard dibaca dari file JSON -> ikut versi di Git, bukan hasil klik yang hilang saat container dihapus.
+apiVersion: 1
+providers:
+  - name: harga-rumah
+    folder: MLOps Day 47
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards

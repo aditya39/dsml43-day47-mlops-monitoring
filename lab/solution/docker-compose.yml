@@ -1,0 +1,92 @@
+# docker-compose.yml — 4 service, 1 jaringan:
+#   mlflow (tracking + registry) <- api (FastAPI) <- prometheus (scrape /metrics) <- grafana (dashboard)
+# Port host bisa diganti lewat file .env (lihat .env.example). Semua port hanya dibuka di 127.0.0.1.
+name: day47-mlops
+
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.18.0
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/artifacts
+      --serve-artifacts --workers 1
+      --allowed-hosts mlflow:5000,localhost:*,127.0.0.1:*
+    environment:
+      MLFLOW_DISABLE_TELEMETRY: "true"
+      DO_NOT_TRACK: "true"
+      # job runner GenAI (evaluasi LLM) tidak kita pakai; mematikannya menghemat ±1,5 GB RAM
+      MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
+    ports:
+      - "127.0.0.1:${MLFLOW_PORT:-5001}:5000"
+    volumes:
+      - mlflow-data:/mlflow          # database run/registry + file model -> awet walau container dihapus
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  api:
+    build: .
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000   # nama service = hostname di jaringan compose
+      MODEL_NAME: harga-rumah
+      MODEL_ALIAS: champion
+      LOG_LEVEL: INFO
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      mlflow:
+        condition: service_healthy   # tunggu MLflow siap dulu (healthcheck di atas)
+    restart: unless-stopped          # healthcheck api ada di Dockerfile (sama seperti Day 46)
+
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus:ro   # prometheus.yml + alerts.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:13.2.6
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"            # dashboard bisa dilihat tanpa login (read-only)
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+
+  # Cadangan kalau Python di laptop bermasalah: jalankan perintah lab DI DALAM container.
+  #   docker compose run --rm trainer python -m src.train
+  trainer:
+    build: .
+    profiles: ["tools"]
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      API_URL: http://api:8000
+    volumes:
+      - .:/app          # pakai kode & data dari folder ini
+    depends_on:
+      mlflow:
+        condition: service_healthy
+
+volumes:
+  mlflow-data:
+  prometheus-data:
+  grafana-data:

@@ -1,0 +1,18 @@
+# Environment & cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+# Data & hasil run: bisa dibuat ulang, jangan masuk Git
+**/data/*.csv
+**/logs/*
+!**/logs/.gitkeep
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Rahasia: JANGAN PERNAH di-commit (.env.example tetap ikut)
+.env

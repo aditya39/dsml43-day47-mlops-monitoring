@@ -1,0 +1,26 @@
+# config.yaml — semua "angka keputusan" ada di SATU tempat, bukan tersebar di kode.
+# Rahasia (password, token, API key) TIDAK BOLEH di sini -> environment variable / .env
+# Nilai bisa di-override lewat environment variable (lihat src/config.py).
+
+project:
+  model_name: harga-rumah            # nama model di MLflow Model Registry
+  experiment: prediksi-harga-rumah   # nama experiment di MLflow Tracking
+
+data:
+  path: data/train.csv
+  test_size: 0.2
+  min_rows: 500                      # validasi: kurang dari ini = berhenti
+
+# hyperparameter RandomForest (baseline Day 46)
+model:
+  n_estimators: 100
+  max_depth: null                    # null = tanpa batas
+  max_features: 1.0
+  random_state: 43                   # seed: hasil bisa diulang persis
+
+# MAE di atas batas ini = model DITOLAK masuk registry
+quality_gate:
+  max_mae: 300000000                 # Rp 300 juta (override: env MAX_MAE)
+
+mlflow:
+  tracking_uri: http://localhost:5001   # override: env MLFLOW_TRACKING_URI
